@@ -1,0 +1,6 @@
+Nuitka
+ordered-set
+pillow
+pygame-ce
+pywin32
+zstandard
