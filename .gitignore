@@ -1,3 +1,10 @@
+venv/
+memo/
+removeperlpath.bat
+pywinscr.build/
+pywinscr.dist/
+pywinscr.onefile-build/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
