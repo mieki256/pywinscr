@@ -77,12 +77,6 @@ mkexe.bat
 deactivate
 ```
 
-License / ライセンス
---------------------
-
-[MIT](https://opensource.org/licenses/MIT)
-
-
 Author / 作者
 -------------
 
