@@ -61,9 +61,9 @@ Install / インストール方法
 Note / 注記
 -----------
 
-exeファイルとscrファイルの作成は mkexe.bat を実行する。Nuitka を利用する。
-
-venv で仮想環境を作ってから作業すれば取り込むモジュールの種類を最低限にできる。
+* exeファイルの作成は mkexe.bat を実行する。Nuitka を利用する。
+* scrファイルの作成は、exeファイルをリネームコピーして行う。mkscr.bat を実行する。
+* venv で仮想環境を作ってから作業すれば取り込むモジュールの種類を最低限にできる。
 
 ```
 python -m venv venv
@@ -73,6 +73,7 @@ python -m pip install pip -U
 python -m pip install -r requirements.txt
 
 mkexe.bat
+mkscr.bat
 
 deactivate
 ```

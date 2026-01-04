@@ -1,5 +1,5 @@
 @echo off
-@rem Copy .exe to .scr file
+@rem Copy .exe to .scr
 
 setlocal
 set BASEFILENAME=pywinscr
