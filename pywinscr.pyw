@@ -1,6 +1,6 @@
 #!/sur/bin/python3.10
 # -*- mode: python; Encoding: utf-8; coding: utf-8 -*-
-# Last updated: <2026/01/03 04:05:11 +0900>
+# Last updated: <2026/01/04 19:51:43 +0900>
 """
 Windows ScreenSaver sample by Python
 
@@ -9,7 +9,7 @@ Windows ScreenSaver sample by Python
 /p HWND : Preview
 Not command line option : Configure
 
-Windows11 x64 25H2 + Python 3.10.10 64bit + tkinter
+Windows11 x64 25H2 + Python 3.10.10 64bit
 + pygame-ce 2.5.6
 + pywin32 311
 + pillow 11.3.0
@@ -21,7 +21,6 @@ Author : mieki256
 import os
 import sys
 import datetime
-import tkinter as tk
 import math
 import win32gui
 import win32con
@@ -30,7 +29,6 @@ import win32security
 import winerror
 import win32event
 import ctypes
-from PIL import Image, ImageWin
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
@@ -44,7 +42,7 @@ VER_NUM = "0.0.1"
 MOUSE_MOVE_DIST = 32
 
 # Windows screensaver preview window size = 152 x 112 pixel
-PREVIEW_IMAGE = "res/preview.png"
+PREVIEW_IMAGE = "res/preview.bmp"
 
 BALL_IMAGE = "res/ball.png"
 
@@ -124,39 +122,12 @@ def show_fullscreen_window():
 
 
 def show_config_window():
-    """Show setting window by tkinter."""
+    """Show setting window"""
 
-    root = tk.Tk()
-    root.title("Setting")
-    # root.geometry("400x200")
-
-    lbl = tk.Label(root, text=APPLI_NAME, font=("Segoe UI", 18, "bold"))
-    lbl2 = tk.Label(root, text=f"ver. {VER_NUM}", font=("Segoe UI", 12, "normal"))
-    lbl3 = tk.Label(
-        root, text="No settings available.", font=("Segoe UI", 12, "normal")
-    )
-    btn = tk.Button(root, text="OK", width=10, command=root.destroy)
-    lbl.pack(padx=48, pady=4)
-    lbl2.pack(padx=48, pady=3)
-    lbl3.pack(padx=48, pady=16)
-    btn.pack(padx=24, pady=16)
-
-    root.lift()
-    root.focus_force()
-
-    root.mainloop()
-    return
-
-
-def show_preview_window(parent_hwnd):
-    """Show preview image window"""
-    preview = PreviewWindow(parent_hwnd, resource_path(PREVIEW_IMAGE))
-    if preview.hwnd is None:
-        return
-
-    win32gui.InvalidateRect(preview.hwnd, None, True)
-    win32gui.UpdateWindow(preview.hwnd)
-    win32gui.PumpMessages()
+    # Displays the application name and version number in a message box
+    message = f"{APPLI_NAME} ver. {VER_NUM}\n\nNo settings available."
+    title = "Information"
+    ctypes.windll.user32.MessageBoxW(None, message, title, 0x00000000 | 0x00000040)
     return
 
 
@@ -196,52 +167,44 @@ def preview_mode(parent_hwnd):
         close_mutex(mtx)
 
 
-class PreviewWindow:
-    """Preview window"""
+def show_preview_window(parent_hwnd):
+    """Show preview image window"""
+    preview = ChildBmpWindow(parent_hwnd, resource_path(PREVIEW_IMAGE))
+    if preview.hwnd:
+        preview.run()
 
-    def __init__(self, parent_hwnd, image_path):
+    return
+
+
+class ChildBmpWindow:
+    def __init__(self, parent_hwnd, bmp_path):
         self.parent_hwnd = parent_hwnd
-        self.resized_dib = None
-        self.draw_rect = (0, 0, 0, 0)
-        self._prepare_high_quality_image(image_path)
-        self.class_name = "PythonStaticHighQualityChild"
+        self.bmp_path = bmp_path
+        self.h_inst = win32api.GetModuleHandle(None)
+        self.h_bmp = None
+        self.class_name = "PyChildBmpWindowClass"
+
+        self._load_image()
         self.hwnd = self._create_window()
 
-    def _prepare_high_quality_image(self, path):
-        """Cretae preview thumbnail image by Pillow"""
-        try:
-            rect = win32gui.GetClientRect(self.parent_hwnd)
-            tgtw = rect[2] - rect[0]
-            tgth = rect[3] - rect[1]
+    def _load_image(self):
+        if not os.path.exists(self.bmp_path):
+            raise FileNotFoundError(f"Error: Not found '{self.bmp_path}'")
 
-            if tgtw <= 0 or tgth <= 0:
-                print("Error: Failed to obtain parent window size.")
-                sys.exit(1)
-
-            img = Image.open(path).convert("RGB")
-
-            iw, ih = img.size
-            if iw != tgtw or ih != tgth:
-                resized_img = img.resize((tgtw, tgth), Image.Resampling.LANCZOS)
-                self.resized_dib = ImageWin.Dib(resized_img)
-            else:
-                self.resized_dib = ImageWin.Dib(img)
-
-            self.draw_rect = (0, 0, tgtw, tgth)
-
-        except Exception as e:
-            print(f"Error: {e}")
-            sys.exit(1)
+        # load bmp image (LR_LOADFROMFILE = 0x10)
+        self.h_bmp = win32gui.LoadImage(
+            0, self.bmp_path, win32con.IMAGE_BITMAP, 0, 0, win32con.LR_LOADFROMFILE
+        )
+        if not self.h_bmp:
+            raise Exception("Error: load bmp failed.")
 
     def _create_window(self):
-        """Create child window"""
         wc = win32gui.WNDCLASS()
-        wc.lpfnWndProc = self.wnd_proc
+        wc.lpfnWndProc = self._wnd_proc
+        wc.hInstance = self.h_inst
         wc.lpszClassName = self.class_name
-        wc.hInstance = win32api.GetModuleHandle(None)
         wc.hCursor = win32gui.LoadCursor(0, win32con.IDC_ARROW)
-        wc.hbrBackground = win32gui.CreateSolidBrush(win32api.RGB(0, 0, 0))
-        wc.style = win32con.CS_HREDRAW | win32con.CS_VREDRAW
+        wc.hbrBackground = 0
 
         try:
             win32gui.RegisterClass(wc)
@@ -249,44 +212,73 @@ class PreviewWindow:
             if e.winerror != 1410:
                 raise
 
-        w = self.draw_rect[2]
-        h = self.draw_rect[3]
+        left, top, right, bottom = win32gui.GetClientRect(self.parent_hwnd)
+        width, height = right - left, bottom - top
 
-        hwnd = win32gui.CreateWindowEx(
-            0,
+        style = win32con.WS_CHILD | win32con.WS_VISIBLE
+
+        hwnd = win32gui.CreateWindow(
             self.class_name,
-            "Child Window",
-            win32con.WS_CHILD | win32con.WS_VISIBLE,
+            None,  # title
+            style,
             0,
             0,
-            w,
-            h,
+            width,
+            height,
             self.parent_hwnd,
             0,
-            win32api.GetModuleHandle(None),
+            self.h_inst,
             None,
         )
 
         if not hwnd:
-            print("[Child] Error: Window creation failed.")
             return None
 
         return hwnd
 
-    def wnd_proc(self, hwnd, msg, wparam, lparam):
+    def _wnd_proc(self, hwnd, msg, wparam, lparam):
         """Window procedure"""
         if msg == win32con.WM_PAINT:
-            hdc, ps = win32gui.BeginPaint(hwnd)
-            if self.resized_dib:
-                self.resized_dib.draw(hdc, self.draw_rect)
-            win32gui.EndPaint(hwnd, ps)
+            self._on_paint(hwnd)
             return 0
 
-        if msg == win32con.WM_DESTROY:
+        elif msg == win32con.WM_DESTROY:
+            if self.h_bmp:
+                win32gui.DeleteObject(self.h_bmp)
             win32gui.PostQuitMessage(0)
             return 0
 
         return win32gui.DefWindowProc(hwnd, msg, wparam, lparam)
+
+    def _on_paint(self, hwnd):
+        """Paint window"""
+        hdc, ps = win32gui.BeginPaint(hwnd)
+
+        mem_dc = win32gui.CreateCompatibleDC(hdc)
+        old_bmp = win32gui.SelectObject(mem_dc, self.h_bmp)
+
+        # get target size
+        rect = win32gui.GetClientRect(hwnd)
+        w, h = rect[2], rect[3]
+
+        win32gui.BitBlt(hdc, 0, 0, w, h, mem_dc, 0, 0, win32con.SRCCOPY)
+
+        # cleanup
+        win32gui.SelectObject(mem_dc, old_bmp)
+        win32gui.DeleteDC(mem_dc)
+        win32gui.EndPaint(hwnd, ps)
+
+    def run(self):
+        if self.parent_hwnd:
+            win32gui.InvalidateRect(self.parent_hwnd, None, True)
+            win32gui.UpdateWindow(self.parent_hwnd)
+
+        if self.hwnd:
+            win32gui.InvalidateRect(self.hwnd, None, True)
+            win32gui.UpdateWindow(self.hwnd)
+
+            # message loop
+            win32gui.PumpMessages()
 
 
 def resource_path(filename):

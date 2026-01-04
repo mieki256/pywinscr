@@ -11,8 +11,8 @@ Description / 説明
 PythonでWindows用のスクリーンセーバを作成できるか試してみた。
 
 * フルスクリーン表示は pygame-ce を使用。
-* 設定画面表示は tkinter を使用。
-* プレビューモードは pywin32 と Pillow を使用。
+* 設定画面表示は ctypes で user32.MessageBoxW() を使用。
+* プレビューモードは pywin32 を使用。
 * exe化(scr化)は Nuitka を使用。
 
 Screenshots
@@ -30,7 +30,6 @@ Requirement / 必要なもの
 * Python
 * pygame-ce
 * pywin32
-* pillow
 * Nuitka
 
 Environment / 動作確認環境
@@ -40,7 +39,6 @@ Environment / 動作確認環境
 * Python 3.10.10 64bit
 * pygame-ce 2.5.6
 * pywin32 311
-* pillow 12.1.0
 * Nuitka 2.8.9
 * ordered-set 4.1.0
 * zstandard 0.25.0
