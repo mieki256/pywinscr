@@ -46,7 +46,7 @@ Environment / 動作確認環境
 Install / インストール方法
 --------------------------
 
-作成した実行バイナリ pywinscr.scr は64bit版のプログラムのはずなので以下にコピーする。
+作成した実行バイナリ pywinscr.scr は64bit版プログラムなので以下にコピーする。
 
 * `C:\Windows\System32\`
 
