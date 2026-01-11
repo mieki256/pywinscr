@@ -1,11 +1,11 @@
 #!/sur/bin/python3.10
 # -*- mode: python; Encoding: utf-8; coding: utf-8 -*-
-# Last updated: <2026/01/04 19:51:43 +0900>
+# Last updated: <2026/01/12 05:07:44 +0900>
 """
 Windows ScreenSaver sample by Python
 
 /s : Start fullscreen screensaver
-/c : Configure
+/c:HWND : Configure
 /p HWND : Preview
 Not command line option : Configure
 
@@ -20,23 +20,23 @@ Author : mieki256
 
 import os
 import sys
+import time
 import datetime
 import math
+import ctypes
 import win32gui
 import win32con
 import win32api
 import win32security
 import winerror
 import win32event
-import ctypes
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
-import pygame  # noqa: E402
 
 dbg = False
 
-APPLI_NAME = "PyWinScrnSaver01"
+APPLI_NAME = "PyWinScr"
 VER_NUM = "0.0.1"
 
 MOUSE_MOVE_DIST = 32
@@ -60,6 +60,8 @@ except Exception:
 
 def show_fullscreen_window():
     """Show fullscreen screensaver by pygame-ce."""
+
+    import pygame  # noqa: E402
 
     pygame.init()
 
@@ -163,6 +165,7 @@ def preview_mode(parent_hwnd):
         write_log("%s : %s already exists. Exit." % (cmdopt, MUTEX_NAME_PREVIEW))
     else:
         write_log("%s : New process. HWND = %d" % (cmdopt, parent_hwnd))
+
         show_preview_window(parent_hwnd)
         close_mutex(mtx)
 
@@ -176,13 +179,26 @@ def show_preview_window(parent_hwnd):
     return
 
 
+def wait_for_window(hwnd, timeout=2):
+    start_time = time.time()
+    while (time.time() - start_time) < timeout:
+        if win32gui.IsWindow(hwnd) and win32gui.IsWindowVisible(hwnd):
+            return True
+        time.sleep(0.1)
+
+    return False
+
+
 class ChildBmpWindow:
     def __init__(self, parent_hwnd, bmp_path):
         self.parent_hwnd = parent_hwnd
         self.bmp_path = bmp_path
-        self.h_inst = win32api.GetModuleHandle(None)
         self.h_bmp = None
         self.class_name = "PyChildBmpWindowClass"
+
+        wait_for_window(self.parent_hwnd)
+
+        self.h_inst = win32api.GetModuleHandle(None)
 
         self._load_image()
         self.hwnd = self._create_window()
@@ -270,10 +286,12 @@ class ChildBmpWindow:
 
     def run(self):
         if self.parent_hwnd:
+            wait_for_window(self.parent_hwnd)
             win32gui.InvalidateRect(self.parent_hwnd, None, True)
             win32gui.UpdateWindow(self.parent_hwnd)
 
         if self.hwnd:
+            wait_for_window(self.hwnd)
             win32gui.InvalidateRect(self.hwnd, None, True)
             win32gui.UpdateWindow(self.hwnd)
 

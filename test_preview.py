@@ -1,6 +1,6 @@
 #!python
 # -*- mode: python; Encoding: utf-8; coding: utf-8 -*-
-# Last updated: <2026/01/03 04:28:34 +0900>
+# Last updated: <2026/01/04 22:59:07 +0900>
 """
 pywin32でウインドウを作成。
 ウインドウハンドル(HWND)を子スクリプトに渡す。
@@ -13,6 +13,7 @@ import win32con
 import win32api
 import subprocess
 import sys
+import os
 
 # 起動対象となる子プロセスのスクリプト名
 CHILD_PY = "pywinscr.pyw"
@@ -82,7 +83,12 @@ def create_window_and_launch_child():
         # 起動中のPython実行環境 (sys.executable) を使って子スクリプトを実行
         # 引数として「/p HWND」を渡す
         print(f"[Parent] {CHILD_PY} を起動...")
-        subprocess.Popen([sys.executable, CHILD_PY, "/p", str(hwnd)])
+        _, ext = os.path.splitext(CHILD_PY)
+        if ext == ".py" or ext == ".pyw":
+            subprocess.Popen([sys.executable, CHILD_PY, "/p", str(hwnd)])
+        elif ext == ".exe":
+            subprocess.Popen([CHILD_PY, "/p", str(hwnd)])
+
     except Exception as e:
         print(f"子プロセス起動に失敗: {e}")
 
