@@ -19,6 +19,6 @@ echo Create %SOURCE_EXE% using Nuitka
 
 python -m nuitka --remove-output --windows-console-mode=disable --include-data-dir="./res=res" --copyright="%AUTHORNAME%" --windows-product-name="%APPLINAME%" --windows-file-description="%DESCRIPTION%" --windows-product-version=%VERSIONTXT% --windows-file-version=%VERSIONTXT% --windows-company-name="%COMPANYNAME%" --follow-imports --onefile %SOURCE_PYW% 
 
-@rem python -m nuitka --mingw64 --remove-output --windows-console-mode=disable --include-data-dir="./res=res" --follow-imports --onefile %SOURCE_PYW%
+@rem python -m nuitka --mingw64 --remove-output --windows-console-mode=disable --include-data-dir="./res=res" --copyright="%AUTHORNAME%" --windows-product-name="%APPLINAME%" --windows-file-description="%DESCRIPTION%" --windows-product-version=%VERSIONTXT% --windows-file-version=%VERSIONTXT% --windows-company-name="%COMPANYNAME%" --follow-imports --onefile %SOURCE_PYW%
 
-@rem python -m nuitka --remove-output --windows-console-mode=disable --include-data-dir="./res=res" --follow-imports --standalone %SOURCE_PYW%
+@rem python -m nuitka --remove-output --windows-console-mode=disable --include-data-dir="./res=res" --copyright="%AUTHORNAME%" --windows-product-name="%APPLINAME%" --windows-file-description="%DESCRIPTION%" --windows-product-version=%VERSIONTXT% --windows-file-version=%VERSIONTXT% --windows-company-name="%COMPANYNAME%" --follow-imports --standalone %SOURCE_PYW%
